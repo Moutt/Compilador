@@ -1,1 +1,15 @@
-teste de arquivo de texto
+{-
+programa le dois numeros inteiros e encontra o maior
+-}
+algoritmo ex1;
+var num_1, NUM_2:inteiro; maior:inteiro; tEste:caractere;
+inicio
+leia(Num_1,Num_2);
+Se Num_1 > Num_2 entao
+ maior := num_1
+SEnao
+ maior := num_2;
+Teste := ‘f’; {- so pra testar o char -}
+escreva(maior) {- imprime o maior valor -}
+
+fim.

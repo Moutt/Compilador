@@ -13,7 +13,7 @@ gcc -Wall -Wno-unused-result -g -Og compilador.c -o compilador
 #include <string.h>
 #include <ctype.h>
 
-// átomos do Portugol
+// Átomos do Portugol
 typedef enum {
     ERRO, FIM_ARQUIVO,
     ALGORITMO, CARACTERE, DIV, E, ENQUANTO, ENTAO, ESCREVA, FACA, FALSO, 
@@ -36,13 +36,13 @@ typedef struct {
     } atributo; 
 } TInfoAtomo;
 
-// Variáveis globais usadas pelo compilador.
+// Variáveis globais.
 char *buffer;       
 int nLinha;         
 int linhas_analisadas;
 TInfoAtomo lookahead; 
 
-// Funções do Analisador Léxico.
+// Funções Léxico.
 TInfoAtomo obter_atomo();
 void reconhece_numero(TInfoAtomo *infoAtomo);
 void reconhece_id(TInfoAtomo *infoAtomo);
@@ -51,7 +51,7 @@ void reconhece_simbolos(TInfoAtomo *infoAtomo);
 void reconhece_comentario(TInfoAtomo *infoAtomo);
 const char* nome_atomo(TAtomo a);
 
-// Funções do Analisador Sintático.
+// Funções Sintático.
 void consome(TAtomo esperado);
 void programa();
 void bloco();
@@ -288,25 +288,23 @@ void reconhece_id(TInfoAtomo *infoAtomo){
 void reconhece_constchar(TInfoAtomo *infoAtomo){
     int is_smart_quote = 0;
     
-    // Consome a primeira aspa
     if (*buffer == '\'') {
         buffer++; 
     } else {
-        buffer += 3; // Pula os 3 bytes da aspa inicial curva '‘'
+        buffer += 3;
         is_smart_quote = 1;
     }
 
     if (*buffer != '\0') {
-        infoAtomo->atributo.ch = *buffer; // Grava o caractere
+        infoAtomo->atributo.ch = *buffer;
         buffer++; 
         
-        // Verifica a aspa de fechamento
         if (!is_smart_quote && *buffer == '\'') {
             buffer++; 
             infoAtomo->atomo = CONSTCHAR;
             return;
         } else if (is_smart_quote && ((unsigned char)buffer[0] == 0xE2 && (unsigned char)buffer[1] == 0x80 && (unsigned char)buffer[2] == 0x99)) {
-            buffer += 3; // Pula os 3 bytes da aspa final curva '’'
+            buffer += 3;
             infoAtomo->atomo = CONSTCHAR;
             return;
         }
