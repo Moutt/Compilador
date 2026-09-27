@@ -65,7 +65,6 @@ void parametros_formais();
 void parametro_formal();
 void comando_composto();
 void comando();
-void comando_atribuicao();
 void comando_entrada();
 void comando_saida();
 void comando_condicional();
@@ -181,7 +180,6 @@ TInfoAtomo obter_atomo() {
         reconhece_numero(&infoAtomo);
     } else if (isalpha(*buffer) || *buffer == '_') {
         reconhece_id(&infoAtomo);
-    // Verifica se é a aspa padrão simples (') OU a aspa inteligente inicial (‘) em UTF-8 (E2 80 98)
     } else if (*buffer == '\'' || ((unsigned char)buffer[0] == 0xE2 && (unsigned char)buffer[1] == 0x80 && (unsigned char)buffer[2] == 0x98)) {
         reconhece_constchar(&infoAtomo);
     } else {
