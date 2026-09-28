@@ -115,6 +115,8 @@ int main(int argc, char *argv[]) {
         fclose(f);
         return 1;
     }
+    
+    // carrega o arquivo todo na memoria de uma vez
     size_t lidos = fread(fonte, 1, (size_t)tamanho, f);
     int falha = ferror(f);
     fclose(f);
@@ -134,10 +136,16 @@ int main(int argc, char *argv[]) {
         if (fonte[i] == '\n') linhas_analisadas++;
     }
     if (lidos > 0 && fonte[lidos - 1] != '\n') linhas_analisadas++;
+    
     buffer = fonte;
     lookahead = obter_atomo();
+    
+    // caso tenha comentario logo no comeco do arquivo, ja pula
     while (lookahead.atomo == COMENTARIO) lookahead = obter_atomo();
+    
+    // inicia a analise sintatica a partir da regra principal
     programa();
+    
     consome(FIM_ARQUIVO);
     printf("\n%d linhas analisadas, programa sintaticamente correto\n", linhas_analisadas);
     return 0;
@@ -175,6 +183,7 @@ TInfoAtomo obter_atomo(void) {
     TInfoAtomo infoAtomo = {0};
     infoAtomo.atomo = ERRO;
 
+    // pula espacos em branco, tabs e quebras de linha antes de ler o proximo atomo
     while (1) {
         while (*buffer == ' ' || *buffer == '\t' || *buffer == '\r') buffer++;
 
@@ -235,6 +244,7 @@ void reconhece_comentario(TInfoAtomo *infoAtomo) {
 
 void reconhece_numero(TInfoAtomo *infoAtomo) {
     int valor = 0;
+    // pega a parte inteira do numero e ja vai verificando overflow
     while (isdigit((unsigned char)*buffer)) {
         int digito = *buffer++ - '0';
         if (valor > (INT_MAX - digito) / 10) {
@@ -243,6 +253,7 @@ void reconhece_numero(TInfoAtomo *infoAtomo) {
         }
         valor = valor * 10 + digito;
     }
+    // tratamento pra notacao cientifica (ex: 10E+2)
     if (*buffer == 'E') {
         buffer++;
         if (*buffer == '+') buffer++;
@@ -274,6 +285,7 @@ void reconhece_id(TInfoAtomo *infoAtomo){
     while(isalnum((unsigned char)*buffer) || *buffer == '_') buffer++;
     size_t tamanho = (size_t)(buffer - ini_lexema);
     
+    // limita o tamanho do identificador
     if (tamanho > 15) {
         printf("# %2d:erro lexico, identificador excedeu 15 caracteres\n", infoAtomo->linha);
         exit(1); 
@@ -282,6 +294,7 @@ void reconhece_id(TInfoAtomo *infoAtomo){
     strncpy(infoAtomo->atributo.id, ini_lexema, tamanho);
     infoAtomo->atributo.id[tamanho] = '\0';
 
+    // converte pra minusculo pra nao dar B.O com as palavras reservadas (case insensitive)
     char temp[16];
     for(size_t i = 0; i < tamanho; i++) temp[i] = tolower((unsigned char)infoAtomo->atributo.id[i]);
     temp[tamanho] = '\0';
@@ -363,10 +376,12 @@ void reconhece_simbolos(TInfoAtomo *infoAtomo){
 
 
 void consome(TAtomo esperado) {
+    // se for o atomo q a gente ta esperando, consome e le o proximo
     if (lookahead.atomo == esperado) {
         if (lookahead.atomo != FIM_ARQUIVO) {
             lookahead = obter_atomo();
             
+            // ignora comentarios soltos no meio do codigo
             while (lookahead.atomo == COMENTARIO) {
                 lookahead = obter_atomo();
             }
