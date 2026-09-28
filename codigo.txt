@@ -9,7 +9,7 @@ Se Num_1 > Num_2 entao
  maior := num_1
 SEnao
  maior := num_2;
-Teste := ‘f’; {- so pra testar o char -}
+Teste := 'f'; {- so pra testar o char -}
 escreva(maior) {- imprime o maior valor -}
 
 fim.

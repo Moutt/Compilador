@@ -12,16 +12,18 @@ gcc -Wall -Wno-unused-result -g -Og compilador.c -o compilador
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
+#include <stdint.h>
 
 // Átomos do Portugol
 typedef enum {
     ERRO, FIM_ARQUIVO,
     ALGORITMO, CARACTERE, DIV, E, ENQUANTO, ENTAO, ESCREVA, FACA, FALSO, 
     FIM, FUNCAO, INICIO, INTEIRO, LEIA, LOGICO, MOD, OU, PROCEDIMENTO, 
-    SE, SENAO, VAR, VERDADEIRO,
+    SE, SENAO, VAR, VERDADEIRO, NAO,
     IDENTIFICADOR, CONSTINT, CONSTCHAR, COMENTARIO,
     PONTO_VIRGULA, PONTO, DOIS_PONTOS, VIRGULA, ATRIBUICAO,
-    ABRE_PAR, FECHA_PAR, ABRE_COL, FECHA_COL,
+    ABRE_PAR, FECHA_PAR,
     OP_MAIOR, OP_MENOR, OP_MAIOR_IGUAL, OP_MENOR_IGUAL,
     OP_IGUAL, OP_DIFERENTE, OP_MAIS, OP_MENOS, OP_MULT
 } TAtomo;
@@ -37,13 +39,14 @@ typedef struct {
 } TInfoAtomo;
 
 // Variáveis globais.
+char *fonte;
 char *buffer;       
 int nLinha;         
 int linhas_analisadas;
 TInfoAtomo lookahead; 
 
 // Funções Léxico.
-TInfoAtomo obter_atomo();
+TInfoAtomo obter_atomo(void);
 void reconhece_numero(TInfoAtomo *infoAtomo);
 void reconhece_id(TInfoAtomo *infoAtomo);
 void reconhece_constchar(TInfoAtomo *infoAtomo);
@@ -53,75 +56,90 @@ const char* nome_atomo(TAtomo a);
 
 // Funções Sintático.
 void consome(TAtomo esperado);
-void programa();
-void bloco();
-void declaracao_variaveis();
-void lista_variaveis();
-void tipo();
-void declaracao_de_rotinas();
-void declaracao_de_funcao();
-void declaracao_de_procedimento();
-void parametros_formais();
-void parametro_formal();
-void comando_composto();
-void comando();
-void comando_entrada();
-void comando_saida();
-void comando_condicional();
-void comando_repeticao();
-void lista_expressao();
-void expressao();
-void expressao_simples();
-void termo();
-void fator();
+void programa(void);
+void bloco(void);
+void declaracao_variaveis(void);
+void lista_variaveis(void);
+void tipo(void);
+void declaracao_de_rotinas(void);
+void declaracao_de_funcao(void);
+void declaracao_de_procedimento(void);
+void parametros_formais(void);
+void parametro_formal(void);
+void comando_composto(void);
+void comando(void);
+void comando_entrada(void);
+void comando_saida(void);
+void comando_condicional(void);
+void comando_repeticao(void);
+void lista_expressao(void);
+void expressao(void);
+void expressao_simples(void);
+void termo(void);
+void fator(void);
+
+
+static void libera_fonte(void) {
+    free(fonte);
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        printf("Uso: %s <arquivo_fonte>\n", argv[0]);
+        fprintf(stderr, "Uso: %s <arquivo_fonte>\n", argv[0]);
         return 1;
     }
-
-    FILE *f = fopen(argv[1], "r");
+    FILE *f = fopen(argv[1], "rb");
     if (f == NULL) {
         perror("Erro ao abrir o arquivo");
         return 1;
     }
-
-    fseek(f, 0, SEEK_END);
-    long tamanho = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    buffer = (char*)malloc(tamanho + 1);
-    if(buffer == NULL){
-        printf("Erro ao alocar memoria.\n");
+    if (fseek(f, 0, SEEK_END) != 0) {
         fclose(f);
         return 1;
     }
-
-    char *ponteiro_original_para_liberar = buffer;
-    fread(buffer, 1, tamanho, f);
-    buffer[tamanho] = '\0';
+    long tamanho = ftell(f);
+    if (tamanho < 0 || (uintmax_t)tamanho >= SIZE_MAX ||
+        fseek(f, 0, SEEK_SET) != 0) {
+        fprintf(stderr, "Erro ao determinar tamanho do arquivo.\n");
+        fclose(f);
+        return 1;
+    }
+    fonte = malloc((size_t)tamanho + 1);
+    if (fonte == NULL) {
+        fprintf(stderr, "Erro ao alocar memoria.\n");
+        fclose(f);
+        return 1;
+    }
+    if (atexit(libera_fonte) != 0) {
+        free(fonte);
+        fclose(f);
+        return 1;
+    }
+    size_t lidos = fread(fonte, 1, (size_t)tamanho, f);
+    int falha = ferror(f);
     fclose(f);
-    
+    if (falha || lidos != (size_t)tamanho) {
+        fprintf(stderr, "Erro ao ler arquivo.\n");
+        return 1;
+    }
+    fonte[lidos] = '\0';
     nLinha = 1;
     linhas_analisadas = 0;
 
+    for (size_t i = 0; i < lidos; i++) {
+        if (fonte[i] == '\0') {
+            printf("# %2d:erro lexico, byte NUL no arquivo\n", linhas_analisadas + 1);
+            return 1;
+        }
+        if (fonte[i] == '\n') linhas_analisadas++;
+    }
+    if (lidos > 0 && fonte[lidos - 1] != '\n') linhas_analisadas++;
+    buffer = fonte;
     lookahead = obter_atomo();
-    
-    while (lookahead.atomo == COMENTARIO) {
-        lookahead = obter_atomo();
-    }
-    
+    while (lookahead.atomo == COMENTARIO) lookahead = obter_atomo();
     programa();
-
-    if (lookahead.atomo != FIM_ARQUIVO) {
-         printf("# %2d:erro sintatico, codigo apos o fim do programa [%s]\n", lookahead.linha, nome_atomo(lookahead.atomo));
-         exit(1);
-    }
-    
+    consome(FIM_ARQUIVO);
     printf("\n%d linhas analisadas, programa sintaticamente correto\n", linhas_analisadas);
-    
-    free(ponteiro_original_para_liberar);
     return 0;
 }
 
@@ -138,7 +156,7 @@ const char* nome_atomo(TAtomo a) {
         case INICIO: return "inicio"; case INTEIRO: return "inteiro"; case LEIA: return "leia";
         case LOGICO: return "logico"; case MOD: return "mod"; case OU: return "ou";
         case PROCEDIMENTO: return "procedimento"; case SE: return "se"; case SENAO: return "senao";
-        case VAR: return "var"; case VERDADEIRO: return "verdadeiro";
+        case NAO: return "nao"; case VAR: return "var"; case VERDADEIRO: return "verdadeiro";
         case IDENTIFICADOR: return "identificador"; case CONSTINT: return "constint";
         case CONSTCHAR: return "constchar"; case COMENTARIO: return "comentario";
         case PONTO_VIRGULA: return "ponto_virgula"; case PONTO: return "ponto"; 
@@ -153,8 +171,8 @@ const char* nome_atomo(TAtomo a) {
     }
 }
 
-TInfoAtomo obter_atomo() {
-    TInfoAtomo infoAtomo;
+TInfoAtomo obter_atomo(void) {
+    TInfoAtomo infoAtomo = {0};
     infoAtomo.atomo = ERRO;
 
     while (1) {
@@ -169,18 +187,17 @@ TInfoAtomo obter_atomo() {
     }
 
     infoAtomo.linha = nLinha;
-    linhas_analisadas = nLinha;
 
     if (*buffer == '\0') {
         infoAtomo.atomo = FIM_ARQUIVO;
         return infoAtomo;
     } else if (*buffer == '{' && *(buffer + 1) == '-') {
         reconhece_comentario(&infoAtomo);
-    } else if (isdigit(*buffer)) {
+    } else if (isdigit((unsigned char)*buffer)) {
         reconhece_numero(&infoAtomo);
-    } else if (isalpha(*buffer) || *buffer == '_') {
+    } else if (isalpha((unsigned char)*buffer)) {
         reconhece_id(&infoAtomo);
-    } else if (*buffer == '\'' || ((unsigned char)buffer[0] == 0xE2 && (unsigned char)buffer[1] == 0x80 && (unsigned char)buffer[2] == 0x98)) {
+    } else if (*buffer == '\'') {
         reconhece_constchar(&infoAtomo);
     } else {
         reconhece_simbolos(&infoAtomo);
@@ -215,39 +232,50 @@ void reconhece_comentario(TInfoAtomo *infoAtomo) {
     exit(1);
 }
 
+
 void reconhece_numero(TInfoAtomo *infoAtomo) {
-    char *ini_lexema = buffer;
-    while(isdigit(*buffer)) buffer++;
-    
-    if (tolower(*buffer) == 'e') {
-        buffer++;
-        if (*buffer == '+' || *buffer == '-') buffer++;
-        if (!isdigit(*buffer)) {
-            printf("# %2d: erro lexico, notacao exponencial mal formada.\n", infoAtomo->linha);
+    int valor = 0;
+    while (isdigit((unsigned char)*buffer)) {
+        int digito = *buffer++ - '0';
+        if (valor > (INT_MAX - digito) / 10) {
+            printf("# %2d:erro lexico, inteiro fora do intervalo de int\n", infoAtomo->linha);
             exit(1);
         }
-        while(isdigit(*buffer)) buffer++;
+        valor = valor * 10 + digito;
     }
-    
-    char num_str[50];
-    int len = buffer - ini_lexema;
-    strncpy(num_str, ini_lexema, len);
-    num_str[len] = '\0';
-    
-    infoAtomo->atributo.numero = (int)strtod(num_str, NULL);
+    if (*buffer == 'E') {
+        buffer++;
+        if (*buffer == '+') buffer++;
+        if (!isdigit((unsigned char)*buffer)) {
+            printf("# %2d:erro lexico, notacao exponencial mal formada\n", infoAtomo->linha);
+            exit(1);
+        }
+
+        int expoente = 0;
+        while (isdigit((unsigned char)*buffer)) {
+            if (expoente < (int)(sizeof(int) * CHAR_BIT))
+                expoente = expoente * 10 + (*buffer - '0');
+            buffer++;
+        }
+        while (valor != 0 && expoente-- > 0) {
+            if (valor > INT_MAX / 10) {
+                printf("# %2d:erro lexico, inteiro fora do intervalo de int\n", infoAtomo->linha);
+                exit(1);
+            }
+            valor *= 10;
+        }
+    }
+    infoAtomo->atributo.numero = valor;
     infoAtomo->atomo = CONSTINT;
 }
 
 void reconhece_id(TInfoAtomo *infoAtomo){
     char *ini_lexema = buffer;
-    while(isalnum(*buffer) || *buffer == '_') buffer++;
-    int tamanho = buffer - ini_lexema;
+    while(isalnum((unsigned char)*buffer) || *buffer == '_') buffer++;
+    size_t tamanho = (size_t)(buffer - ini_lexema);
     
     if (tamanho > 15) {
-        char lexema_erro[50];
-        strncpy(lexema_erro, ini_lexema, tamanho);
-        lexema_erro[tamanho] = '\0';
-        printf("# %2d:erro lexico, identificador excedeu 15 caracteres [%s]\n", infoAtomo->linha, lexema_erro);
+        printf("# %2d:erro lexico, identificador excedeu 15 caracteres\n", infoAtomo->linha);
         exit(1); 
     }
 
@@ -255,7 +283,7 @@ void reconhece_id(TInfoAtomo *infoAtomo){
     infoAtomo->atributo.id[tamanho] = '\0';
 
     char temp[16];
-    for(int i = 0; i < tamanho; i++) temp[i] = tolower(infoAtomo->atributo.id[i]);
+    for(size_t i = 0; i < tamanho; i++) temp[i] = tolower((unsigned char)infoAtomo->atributo.id[i]);
     temp[tamanho] = '\0';
 
     if (strcmp(temp, "algoritmo") == 0) infoAtomo->atomo = ALGORITMO;
@@ -273,6 +301,7 @@ void reconhece_id(TInfoAtomo *infoAtomo){
     else if (strcmp(temp, "inteiro") == 0) infoAtomo->atomo = INTEIRO;
     else if (strcmp(temp, "leia") == 0) infoAtomo->atomo = LEIA;
     else if (strcmp(temp, "logico") == 0) infoAtomo->atomo = LOGICO;
+    else if (strcmp(temp, "nao") == 0) infoAtomo->atomo = NAO;
     else if (strcmp(temp, "mod") == 0) infoAtomo->atomo = MOD;
     else if (strcmp(temp, "ou") == 0) infoAtomo->atomo = OU;
     else if (strcmp(temp, "procedimento") == 0) infoAtomo->atomo = PROCEDIMENTO;
@@ -284,31 +313,18 @@ void reconhece_id(TInfoAtomo *infoAtomo){
 }
 
 void reconhece_constchar(TInfoAtomo *infoAtomo){
-    int is_smart_quote = 0;
-    
-    if (*buffer == '\'') {
-        buffer++; 
-    } else {
-        buffer += 3;
-        is_smart_quote = 1;
-    }
-
-    if (*buffer != '\0') {
-        infoAtomo->atributo.ch = *buffer;
-        buffer++; 
-        
-        if (!is_smart_quote && *buffer == '\'') {
-            buffer++; 
-            infoAtomo->atomo = CONSTCHAR;
-            return;
-        } else if (is_smart_quote && ((unsigned char)buffer[0] == 0xE2 && (unsigned char)buffer[1] == 0x80 && (unsigned char)buffer[2] == 0x99)) {
-            buffer += 3;
+    buffer++;
+    if (*buffer != '\0' && (unsigned char)*buffer <= 127) {
+        char ch = *buffer++;
+        if (*buffer == '\'') {
+            buffer++;
+            if (ch == '\n') nLinha++;
+            infoAtomo->atributo.ch = ch;
             infoAtomo->atomo = CONSTCHAR;
             return;
         }
     }
-    
-    printf("# %2d: erro lexico, constante char mal formada.\n", infoAtomo->linha);
+    printf("# %2d:erro lexico, constante char mal formada\n", infoAtomo->linha);
     exit(1);
 }
 
@@ -361,16 +377,16 @@ void consome(TAtomo esperado) {
     }
 }
 
-void programa() {
+void programa(void) {
     consome(ALGORITMO); consome(IDENTIFICADOR); consome(PONTO_VIRGULA);
     bloco(); consome(PONTO);
 }
 
-void bloco() {
+void bloco(void) {
     declaracao_variaveis(); declaracao_de_rotinas(); comando_composto();
 }
 
-void declaracao_variaveis() {
+void declaracao_variaveis(void) {
     if (lookahead.atomo == VAR) {
         consome(VAR);
         lista_variaveis(); consome(PONTO_VIRGULA);
@@ -380,7 +396,7 @@ void declaracao_variaveis() {
     }
 }
 
-void lista_variaveis() {
+void lista_variaveis(void) {
     consome(IDENTIFICADOR);
     while (lookahead.atomo == VIRGULA) {
         consome(VIRGULA); consome(IDENTIFICADOR);
@@ -388,54 +404,51 @@ void lista_variaveis() {
     consome(DOIS_PONTOS); tipo();
 }
 
-void tipo() {
+void tipo(void) {
     if (lookahead.atomo == CARACTERE) consome(CARACTERE);
     else if (lookahead.atomo == INTEIRO) consome(INTEIRO);
     else if (lookahead.atomo == LOGICO) consome(LOGICO);
     else {
-        printf("# %2d:erro sintatico, esperado tipo valido encontrado [%s]\n", lookahead.linha, nome_atomo(lookahead.atomo));
+        printf("# %2d:erro sintatico, esperado [caractere, inteiro ou logico] encontrado [%s]\n", lookahead.linha, nome_atomo(lookahead.atomo));
         exit(1);
     }
 }
 
-void declaracao_de_rotinas() {
+void declaracao_de_rotinas(void) {
     while (lookahead.atomo == FUNCAO || lookahead.atomo == PROCEDIMENTO) {
         if (lookahead.atomo == FUNCAO) declaracao_de_funcao();
         else declaracao_de_procedimento();
     }
 }
 
-void declaracao_de_funcao() {
+void declaracao_de_funcao(void) {
     consome(FUNCAO); tipo(); consome(IDENTIFICADOR);
     parametros_formais(); declaracao_variaveis(); comando_composto();
 }
 
-void declaracao_de_procedimento() {
+void declaracao_de_procedimento(void) {
     consome(PROCEDIMENTO); consome(IDENTIFICADOR);
     parametros_formais(); declaracao_variaveis(); comando_composto();
 }
 
-void parametros_formais() {
-    if (lookahead.atomo == ABRE_PAR) {
-        consome(ABRE_PAR);
-        if (lookahead.atomo == FECHA_PAR) {
-            consome(FECHA_PAR);
-        } else {
+void parametros_formais(void) {
+    consome(ABRE_PAR);
+    if (lookahead.atomo != FECHA_PAR) {
+        parametro_formal();
+        while (lookahead.atomo == PONTO_VIRGULA) {
+            consome(PONTO_VIRGULA);
             parametro_formal();
-            while (lookahead.atomo == PONTO_VIRGULA) {
-                consome(PONTO_VIRGULA); parametro_formal();
-            }
-            consome(FECHA_PAR);
         }
     }
+    consome(FECHA_PAR);
 }
 
-void parametro_formal() {
+void parametro_formal(void) {
     if (lookahead.atomo == VAR) consome(VAR);
     lista_variaveis();
 }
 
-void comando_composto() {
+void comando_composto(void) {
     consome(INICIO);
     comando();
     while (lookahead.atomo == PONTO_VIRGULA) {
@@ -444,7 +457,7 @@ void comando_composto() {
     consome(FIM);
 }
 
-void comando() {
+void comando(void) {
     if (lookahead.atomo == IDENTIFICADOR) {
         consome(IDENTIFICADOR);
         if (lookahead.atomo == ATRIBUICAO) {
@@ -458,9 +471,14 @@ void comando() {
     else if (lookahead.atomo == SE) comando_condicional();
     else if (lookahead.atomo == ENQUANTO) comando_repeticao();
     else if (lookahead.atomo == INICIO) comando_composto();
+    else {
+        printf("# %2d:erro sintatico, esperado [identificador, leia, escreva, se, enquanto ou inicio] encontrado [%s]\n",
+               lookahead.linha, nome_atomo(lookahead.atomo));
+        exit(1);
+    }
 }
 
-void comando_entrada() {
+void comando_entrada(void) {
     consome(LEIA); consome(ABRE_PAR); consome(IDENTIFICADOR);
     while (lookahead.atomo == VIRGULA) {
         consome(VIRGULA); consome(IDENTIFICADOR);
@@ -468,53 +486,56 @@ void comando_entrada() {
     consome(FECHA_PAR);
 }
 
-void comando_saida() {
+void comando_saida(void) {
     consome(ESCREVA); consome(ABRE_PAR);
     lista_expressao(); consome(FECHA_PAR);
 }
 
-void comando_condicional() {
+void comando_condicional(void) {
     consome(SE); expressao(); consome(ENTAO); comando();
     if (lookahead.atomo == SENAO) {
         consome(SENAO); comando();
     }
 }
 
-void comando_repeticao() {
+void comando_repeticao(void) {
     consome(ENQUANTO); expressao(); consome(FACA); comando();
 }
 
-void lista_expressao() {
+void lista_expressao(void) {
     expressao();
     while (lookahead.atomo == VIRGULA) {
         consome(VIRGULA); expressao();
     }
 }
 
-void expressao() {
+void expressao(void) {
     expressao_simples();
     if (lookahead.atomo >= OP_MAIOR && lookahead.atomo <= OP_DIFERENTE) {
         consome(lookahead.atomo); expressao_simples();
     }
 }
 
-void expressao_simples() {
-    if(lookahead.atomo == OP_MAIS || lookahead.atomo == OP_MENOS) consome(lookahead.atomo);
+void expressao_simples(void) {
     termo();
     while (lookahead.atomo == OP_MAIS || lookahead.atomo == OP_MENOS || lookahead.atomo == MOD || lookahead.atomo == OU) {
         consome(lookahead.atomo); termo();
     }
 }
 
-void termo() {
+void termo(void) {
     fator();
     while (lookahead.atomo == OP_MULT || lookahead.atomo == DIV || lookahead.atomo == E) {
         consome(lookahead.atomo); fator();
     }
 }
 
-void fator() {
-    if (lookahead.atomo == IDENTIFICADOR) {
+
+void fator(void) {
+    if (lookahead.atomo == OP_MAIS || lookahead.atomo == OP_MENOS || lookahead.atomo == NAO) {
+        consome(lookahead.atomo);
+        fator();
+    } else if (lookahead.atomo == IDENTIFICADOR) {
         consome(IDENTIFICADOR);
         if (lookahead.atomo == ABRE_PAR) {
             consome(ABRE_PAR); lista_expressao(); consome(FECHA_PAR);
@@ -526,7 +547,7 @@ void fator() {
     } else if (lookahead.atomo == VERDADEIRO) consome(VERDADEIRO);
     else if (lookahead.atomo == FALSO) consome(FALSO);
     else {
-        printf("# %2d:erro sintatico, fator mal formado, token: %s\n", lookahead.linha, nome_atomo(lookahead.atomo));
+        printf("# %2d:erro sintatico, esperado [identificador, constint, constchar, (, +, -, nao, verdadeiro ou falso] encontrado [%s]\n", lookahead.linha, nome_atomo(lookahead.atomo));
         exit(1);
     }
 }
