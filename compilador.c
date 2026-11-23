@@ -950,6 +950,8 @@ void termo(void) {
 
         if (operador == OP_MULT) {
             emitir("MULT");
+        } else if (operador == DIV) {
+            emitir("DIVI");
         }
     }
 }
