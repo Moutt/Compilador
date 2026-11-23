@@ -241,8 +241,15 @@ int main(int argc, char *argv[]) {
     }
     if (lidos > 0 && fonte[lidos - 1] != '\n') linhas_analisadas++;
     
-    buffer = fonte;
-    lookahead = obter_atomo();
+inicializar_tabela();
+
+if (atexit(liberar_tabela) != 0) {
+    fprintf(stderr, "Erro ao registrar limpeza da tabela.\n");
+    return 1;
+}
+
+buffer = fonte;
+lookahead = obter_atomo();
     
     // caso tenha comentario logo no comeco do arquivo, ja pula
     while (lookahead.atomo == COMENTARIO) lookahead = obter_atomo();
