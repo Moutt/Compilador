@@ -69,6 +69,8 @@ TInfoAtomo lookahead;
 TTabelaSimbolos tabela_simbolos;
 int escopo_atual = 0;
 int proximo_escopo = 1;
+// Proximo endereco disponivel para variaveis e parametros.
+int proximo_endereco = 0;
 
 // Emite uma instrucao MEPA
 void emitir(const char *instrucao) {
@@ -165,7 +167,12 @@ TNo *inserir_simbolo(const char *id, int escopo,
 
     // Preenche os dados do identificador.
     strcpy(novo->ID, id);
-    novo->endereco = -1;
+    if (categoria == SIMBOLO_VARIAVEL ||
+        categoria == SIMBOLO_PARAMETRO) {
+        novo->endereco = proximo_endereco++;
+    } else {
+        novo->endereco = -1;
+    }
     novo->escopo = escopo;
     novo->linha = linha;
     novo->categoria = categoria;
