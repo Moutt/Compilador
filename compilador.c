@@ -102,6 +102,14 @@ void expressao_simples(void);
 void termo(void);
 void fator(void);
 
+// Funções da tabela de símbolos.
+extern int hashMack(char *s);
+
+void inicializar_tabela(void);
+TNo *buscar_simbolo(const char *id, int escopo);
+TNo *inserir_simbolo(const char *id, int escopo,
+                    TCategoriaSimbolo categoria, int linha);
+void liberar_tabela(void);
 
 static void libera_fonte(void) {
     free(fonte);
