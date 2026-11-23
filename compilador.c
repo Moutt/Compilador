@@ -558,6 +558,15 @@ void reconhece_simbolos(TInfoAtomo *infoAtomo){
             if (*(buffer + 1) == '=') { infoAtomo->atomo = ATRIBUICAO; buffer += 2; }
             else { infoAtomo->atomo = DOIS_PONTOS; buffer++; }
             break;
+        case ':':
+            if (*(buffer + 1) == '=') {
+                infoAtomo->atomo = ATRIBUICAO;
+                buffer += 2;
+            } else {
+                infoAtomo->atomo = DOIS_PONTOS;
+                buffer++;
+            }
+            break;
         case '<':
             if (*(buffer + 1) == '=') { infoAtomo->atomo = OP_MENOR_IGUAL; buffer += 2; }
             else if (*(buffer + 1) == '>') { infoAtomo->atomo = OP_DIFERENTE; buffer += 2; }
