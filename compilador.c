@@ -115,6 +115,29 @@ static void libera_fonte(void) {
     free(fonte);
 }
 
+void inicializar_tabela(void) {
+    for (int i = 0; i < PRIME_NUMER; i++) {
+        tabela_simbolos.entradas[i] = NULL;
+    }
+}
+
+TNo *buscar_simbolo(const char *id, int escopo) {
+    int indice = hashMack((char *)id);
+
+    TNo *atual = tabela_simbolos.entradas[indice];
+
+    while (atual != NULL) {
+        if (strcmp(atual->ID, id) == 0 &&
+            atual->escopo == escopo) {
+            return atual;
+        }
+
+        atual = atual->prox;
+    }
+
+    return NULL;
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         fprintf(stderr, "Uso: %s <arquivo_fonte>\n", argv[0]);
