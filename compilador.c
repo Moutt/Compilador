@@ -760,26 +760,40 @@ void declaracao_de_procedimento(void) {
     int escopo_anterior = escopo_atual;
     escopo_atual = proximo_escopo++;
 
+    // Reinicia os enderecos locais deste procedimento.
+    proximo_endereco_local = 0;
+
     // Reconhece os parametros.
     parametros_formais();
 
-    // Consome o ponto e virgula apos o cabecalho.
     consome(PONTO_VIRGULA);
 
     // Reconhece as variaveis locais.
+    int inicio_variaveis = proximo_endereco_local;
     declaracao_variaveis();
 
-    // Entrada do procedimento no MEPA.
+    int quantidade_locais =
+        proximo_endereco_local - inicio_variaveis;
+
+    // Entrada do procedimento.
     fprintf(arquivo_mepa, "L%d:NADA\n", simbolo->rotulo);
     emitir("ENPR");
+
+    // Reserva memoria para variaveis locais.
+    if (quantidade_locais > 0) {
+        emitir_valor("AMEM", quantidade_locais);
+    }
 
     // Corpo do procedimento.
     comando_composto();
 
-    // Retorno ao programa chamador.
+    // Libera a memoria local.
+    if (quantidade_locais > 0) {
+        emitir_valor("DMEM", quantidade_locais);
+    }
+
     emitir("RTPR 0");
 
-    // Consome o ponto e virgula apos o fim.
     consome(PONTO_VIRGULA);
 
     escopo_atual = escopo_anterior;
