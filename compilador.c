@@ -138,6 +138,55 @@ TNo *buscar_simbolo(const char *id, int escopo) {
     return NULL;
 }
 
+TNo *inserir_simbolo(const char *id, int escopo,
+                    TCategoriaSimbolo categoria, int linha) {
+
+    // Verifica se o identificador já existe neste escopo.
+    if (buscar_simbolo(id, escopo) != NULL) {
+        fprintf(stderr,
+                "Erro semantico na linha %d: identificador '%s' ja declarado.\n",
+                linha, id);
+        exit(EXIT_FAILURE);
+    }
+
+    // Reserva memória para o novo símbolo.
+    TNo *novo = malloc(sizeof(TNo));
+
+    if (novo == NULL) {
+        fprintf(stderr, "Erro ao alocar memoria para simbolo.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Preenche os dados do identificador.
+    strcpy(novo->ID, id);
+    novo->endereco = -1;
+    novo->escopo = escopo;
+    novo->linha = linha;
+    novo->categoria = categoria;
+
+    // Insere no início da lista encadeada.
+    int indice = hashMack(novo->ID);
+
+    novo->prox = tabela_simbolos.entradas[indice];
+    tabela_simbolos.entradas[indice] = novo;
+
+    return novo;
+}
+
+void liberar_tabela(void) {
+    for (int i = 0; i < PRIME_NUMER; i++) {
+        TNo *atual = tabela_simbolos.entradas[i];
+
+        while (atual != NULL) {
+            TNo *proximo = atual->prox;
+            free(atual);
+            atual = proximo;
+        }
+
+        tabela_simbolos.entradas[i] = NULL;
+    }
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         fprintf(stderr, "Uso: %s <arquivo_fonte>\n", argv[0]);
