@@ -866,9 +866,10 @@ void comando(void) {
             consome(ATRIBUICAO);
             expressao();
 
-            // Armazena o resultado na variável global.
             if (simbolo->escopo == 0) {
                 fprintf(arquivo_mepa, "ARMZ 0,%d\n", simbolo->endereco);
+            } else {
+                fprintf(arquivo_mepa, "ARMZ 1,%d\n", simbolo->endereco);
             }
 
         } else if (lookahead.atomo == ABRE_PAR) {
