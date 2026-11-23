@@ -603,13 +603,54 @@ void comando_composto(void) {
 
 void comando(void) {
     if (lookahead.atomo == IDENTIFICADOR) {
+        char id[16];
+        int linha = lookahead.linha;
+
+        strcpy(id, lookahead.atributo.id);
         consome(IDENTIFICADOR);
-        if (lookahead.atomo == ATRIBUICAO) {
-            consome(ATRIBUICAO); expressao();
-        } else if (lookahead.atomo == ABRE_PAR) {
-            consome(ABRE_PAR); lista_expressao(); consome(FECHA_PAR);
+
+        // Procura primeiro no escopo atual.
+        TNo *simbolo = buscar_simbolo(id, escopo_atual);
+
+        // Se não encontrar, procura no escopo global.
+        if (simbolo == NULL && escopo_atual != 0) {
+            simbolo = buscar_simbolo(id, 0);
         }
-    } 
+
+        if (simbolo == NULL) {
+            fprintf(stderr,
+                    "Erro semantico na linha %d: identificador '%s' nao declarado.\n",
+                    linha, id);
+            exit(EXIT_FAILURE);
+        }
+
+        if (lookahead.atomo == ATRIBUICAO) {
+            // Apenas variáveis e parâmetros podem receber atribuições.
+            if (simbolo->categoria != SIMBOLO_VARIAVEL &&
+                simbolo->categoria != SIMBOLO_PARAMETRO) {
+                fprintf(stderr,
+                        "Erro semantico na linha %d: '%s' nao pode receber atribuicao.\n",
+                        linha, id);
+                exit(EXIT_FAILURE);
+            }
+
+            consome(ATRIBUICAO);
+            expressao();
+
+        } else if (lookahead.atomo == ABRE_PAR) {
+            // Chamadas devem referenciar procedimentos.
+            if (simbolo->categoria != SIMBOLO_PROCEDIMENTO) {
+                fprintf(stderr,
+                        "Erro semantico na linha %d: '%s' nao e procedimento.\n",
+                        linha, id);
+                exit(EXIT_FAILURE);
+            }
+
+            consome(ABRE_PAR);
+            lista_expressao();
+            consome(FECHA_PAR);
+        }
+    }
     else if (lookahead.atomo == LEIA) comando_entrada();
     else if (lookahead.atomo == ESCREVA) comando_saida();
     else if (lookahead.atomo == SE) comando_condicional();
