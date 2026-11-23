@@ -554,7 +554,7 @@ void reconhece_simbolos(TInfoAtomo *infoAtomo){
         case '(': infoAtomo->atomo = ABRE_PAR; buffer++; break;
         case ')': infoAtomo->atomo = FECHA_PAR; buffer++; break;
         case '=': infoAtomo->atomo = OP_IGUAL; buffer++; break;
-        case ':':
+        case '/': infoAtomo->atomo = DIV; buffer++; break;
             if (*(buffer + 1) == '=') { infoAtomo->atomo = ATRIBUICAO; buffer += 2; }
             else { infoAtomo->atomo = DOIS_PONTOS; buffer++; }
             break;
