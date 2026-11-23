@@ -66,7 +66,6 @@ typedef struct {
 char *fonte;
 char *buffer;       
 int nLinha;
-int quantidade_parametros_atual = 0;
 int linhas_analisadas;
 TInfoAtomo lookahead; 
 TTabelaSimbolos tabela_simbolos;
@@ -76,6 +75,8 @@ int proximo_escopo = 1;
 int proximo_endereco = 0;
 int proximo_endereco_local = 0; // Endereços locais
 int proximo_rotulo = 1;
+int quantidade_parametros_atual = 0;
+TNo *funcao_atual = NULL;
 
 FILE *arquivo_mepa = NULL;
 
