@@ -724,7 +724,6 @@ void declaracao_de_rotinas(void) {
     }
 }
 
-
 void declaracao_de_funcao(void) {
     consome(FUNCAO);
     tipo();
@@ -775,31 +774,24 @@ void declaracao_de_funcao(void) {
     consome(PONTO_VIRGULA);
 
     int inicio_variaveis = proximo_endereco_local;
-
     declaracao_variaveis();
 
     int quantidade_locais =
         proximo_endereco_local - inicio_variaveis;
 
-    // Inicio da funcao no MEPA.
-    fprintf(arquivo_mepa,
-            "L%d:NADA\n", simbolo->rotulo);
-
+    fprintf(arquivo_mepa, "L%d:NADA\n", simbolo->rotulo);
     emitir("ENPR");
 
     if (quantidade_locais > 0) {
         emitir_valor("AMEM", quantidade_locais);
     }
 
-    // Comandos da funcao, incluindo a atribuicao
-    // ao nome da propria funcao.
     comando_composto();
 
     if (quantidade_locais > 0) {
         emitir_valor("DMEM", quantidade_locais);
     }
 
-    // Retorna e remove os parametros da pilha.
     fprintf(arquivo_mepa,
             "RTPR %d\n", simbolo->quantidade_parametros);
 
@@ -808,6 +800,7 @@ void declaracao_de_funcao(void) {
     escopo_atual = escopo_anterior;
     funcao_atual = funcao_anterior;
 }
+
 
 
 
