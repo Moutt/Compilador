@@ -941,9 +941,38 @@ void comando_condicional(void) {
 }
 
 
+
 void comando_repeticao(void) {
-    consome(ENQUANTO); expressao(); consome(FACA); comando();
+    int rotulo_inicio = proximo_rotulo++;
+    int rotulo_fim = proximo_rotulo++;
+
+    char instrucao[64];
+
+    // Marca o inicio do laco.
+    sprintf(instrucao, "L%d:NADA", rotulo_inicio);
+    emitir(instrucao);
+
+    // Avalia a condicao.
+    consome(ENQUANTO);
+    expressao();
+    consome(FACA);
+
+    // Se a condicao for falsa, sai do laco.
+    sprintf(instrucao, "DSVF L%d", rotulo_fim);
+    emitir(instrucao);
+
+    // Executa o corpo do enquanto.
+    comando();
+
+    // Retorna ao inicio para reavaliar a condicao.
+    sprintf(instrucao, "DSVS L%d", rotulo_inicio);
+    emitir(instrucao);
+
+    // Marca o fim do laco.
+    sprintf(instrucao, "L%d:NADA", rotulo_fim);
+    emitir(instrucao);
 }
+
 
 void lista_expressao(void) {
     expressao();
