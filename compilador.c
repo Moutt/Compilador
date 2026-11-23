@@ -900,12 +900,46 @@ void comando_saida(void) {
     consome(FECHA_PAR);
 }
 
+
 void comando_condicional(void) {
-    consome(SE); expressao(); consome(ENTAO); comando();
+    int rotulo_falso = proximo_rotulo++;
+    int rotulo_fim = proximo_rotulo++;
+
+    char instrucao[64];
+
+    consome(SE);
+    expressao();
+    consome(ENTAO);
+
+    // Se a condicao for falsa, salta para L_falso.
+    sprintf(instrucao, "DSVF L%d", rotulo_falso);
+    emitir(instrucao);
+
+    // Executa o comando quando a condicao for verdadeira.
+    comando();
+
     if (lookahead.atomo == SENAO) {
-        consome(SENAO); comando();
+        // Evita executar o senao depois do bloco verdadeiro.
+        sprintf(instrucao, "DSVS L%d", rotulo_fim);
+        emitir(instrucao);
+
+        // Inicio do bloco senao.
+        sprintf(instrucao, "L%d:NADA", rotulo_falso);
+        emitir(instrucao);
+
+        consome(SENAO);
+        comando();
+
+        // Fim da estrutura condicional.
+        sprintf(instrucao, "L%d:NADA", rotulo_fim);
+        emitir(instrucao);
+    } else {
+        // Sem senao: destino do desvio falso.
+        sprintf(instrucao, "L%d:NADA", rotulo_falso);
+        emitir(instrucao);
     }
 }
+
 
 void comando_repeticao(void) {
     consome(ENQUANTO); expressao(); consome(FACA); comando();
