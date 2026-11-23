@@ -1,0 +1,9 @@
+algoritmo teste;
+var idade: inteiro;
+inicio
+    idade := 15;
+    se idade >= 18 entao
+        escreva(1)
+    senao
+        escreva(0)
+fim.

@@ -1,0 +1,8 @@
+algoritmo teste;
+procedimento somar(a: inteiro; b: inteiro);
+inicio
+    escreva(a + b)
+fim;
+inicio
+    somar(10, 20)
+fim.

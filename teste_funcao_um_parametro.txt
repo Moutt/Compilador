@@ -1,0 +1,8 @@
+algoritmo teste;
+funcao inteiro dobro(a: inteiro);
+inicio
+    dobro := a * 2
+fim;
+inicio
+    escreva(dobro(15))
+fim.

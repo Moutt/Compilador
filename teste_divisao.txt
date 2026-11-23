@@ -1,0 +1,6 @@
+algoritmo teste;
+var resultado: inteiro;
+inicio
+    resultado := 100 / 5;
+    escreva(resultado)
+fim.

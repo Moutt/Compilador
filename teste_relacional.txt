@@ -1,0 +1,4 @@
+algoritmo teste;
+inicio
+    escreva(20 > 10)
+fim.

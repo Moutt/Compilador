@@ -1,0 +1,7 @@
+algoritmo teste;
+var idade, salario: inteiro;
+inicio
+    salario := 20;
+    idade := salario + 10;
+    escreva(idade)
+fim.

@@ -1,0 +1,8 @@
+algoritmo teste;
+funcao inteiro somar(a: inteiro; b: inteiro);
+inicio
+    somar := a + b
+fim;
+inicio
+    escreva(somar(somar(2, 3), 4))
+fim.

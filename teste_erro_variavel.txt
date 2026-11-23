@@ -1,0 +1,6 @@
+algoritmo teste;
+var numero: inteiro;
+inicio
+    numero := 10;
+    escreva(resultado)
+fim.

@@ -1,0 +1,10 @@
+algoritmo teste;
+procedimento mostrar();
+var numero: inteiro;
+inicio
+    numero := 50;
+    escreva(numero)
+fim;
+inicio
+    mostrar()
+fim.

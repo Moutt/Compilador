@@ -1352,6 +1352,10 @@ void fator(void) {
 
     // Executa a funcao.
         fprintf(arquivo_mepa, "CHPR L%d\n", simbolo->rotulo);
+	if (simbolo->quantidade_parametros > 0) {
+	    fprintf(arquivo_mepa, "DMEM %d\n",
+		    simbolo->quantidade_parametros);
+	}
 
 
         } else {

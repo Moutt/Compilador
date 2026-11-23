@@ -1,0 +1,8 @@
+algoritmo teste;
+funcao inteiro obterNumero();
+inicio
+    obterNumero := 42
+fim;
+inicio
+    escreva(obterNumero())
+fim.

@@ -1,0 +1,19 @@
+# Arquivos compilados
+*.o
+*.exe
+
+# Saída gerada pelo compilador
+saida.mepa
+
+# Arquivos temporários
+*.out
+*.log
+
+# Arquivos de depuração
+*.core
+
+# Executável do compilador
+/compilador
+
+# Testes temporários de depuração MEPA
+/teste_retorno_*.mepa

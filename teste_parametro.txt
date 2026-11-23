@@ -1,0 +1,8 @@
+algoritmo teste;
+procedimento mostrar(valor: inteiro);
+inicio
+    escreva(valor)
+fim;
+inicio
+    mostrar(75)
+fim.

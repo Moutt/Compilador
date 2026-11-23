@@ -1,0 +1,8 @@
+algoritmo teste;
+procedimento mostrar();
+inicio
+    escreva(100)
+fim;
+inicio
+    mostrar()
+fim.

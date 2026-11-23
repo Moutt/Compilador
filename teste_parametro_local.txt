@@ -1,0 +1,10 @@
+algoritmo teste;
+procedimento calcular(a: inteiro; b: inteiro);
+var resultado: inteiro;
+inicio
+    resultado := a + b;
+    escreva(resultado)
+fim;
+inicio
+    calcular(15, 25)
+fim.

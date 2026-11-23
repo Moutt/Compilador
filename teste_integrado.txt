@@ -1,0 +1,24 @@
+algoritmo teste;
+var contador: inteiro;
+
+funcao inteiro dobro(a: inteiro);
+inicio
+    dobro := a * 2
+fim;
+
+procedimento mostrar(valor: inteiro);
+inicio
+    escreva(valor)
+fim;
+
+inicio
+    contador := 1;
+    enquanto contador <= 3 faca
+    inicio
+        se contador > 1 entao
+            mostrar(dobro(contador))
+        senao
+            mostrar(contador);
+        contador := contador + 1
+    fim
+fim.

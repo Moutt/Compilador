@@ -1,0 +1,7 @@
+algoritmo teste;
+var numero: inteiro;
+    numero: inteiro;
+inicio
+    numero := 10;
+    escreva(numero)
+fim.
