@@ -734,7 +734,13 @@ void declaracao_de_funcao(void) {
     strcpy(id, lookahead.atributo.id);
     consome(IDENTIFICADOR);
 
-    inserir_simbolo(id, 0, SIMBOLO_FUNCAO, linha);
+    TNo *simbolo = inserir_simbolo(
+        id, 0, SIMBOLO_FUNCAO, linha
+    );
+
+    simbolo->rotulo = proximo_rotulo++;
+
+    funcao_atual = simbolo;
 
     int escopo_anterior = escopo_atual;
     escopo_atual = proximo_escopo++;
@@ -748,6 +754,7 @@ void declaracao_de_funcao(void) {
     comando_composto();
 
     escopo_atual = escopo_anterior;
+    funcao_atual = NULL;
 }
 
 
