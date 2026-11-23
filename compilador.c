@@ -826,7 +826,9 @@ void declaracao_de_procedimento(void) {
         emitir_valor("DMEM", quantidade_locais);
     }
 
-    emitir("RTPR 0");
+    // Retorna ao programa chamador e remove os parametros.
+    fprintf(arquivo_mepa, "RTPR %d\n",
+            simbolo->quantidade_parametros);
 
     consome(PONTO_VIRGULA);
 
