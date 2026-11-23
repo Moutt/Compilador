@@ -48,6 +48,7 @@ typedef enum {
 } TCategoriaSimbolo;
 
 typedef struct _TNo {
+    int quantidade_parametros;
     char ID[16];
     int endereco;
     int escopo;
@@ -64,7 +65,8 @@ typedef struct {
 // Variáveis globais.
 char *fonte;
 char *buffer;       
-int nLinha;         
+int nLinha;
+int quantidade_parametros_atual = 0;
 int linhas_analisadas;
 TInfoAtomo lookahead; 
 TTabelaSimbolos tabela_simbolos;
@@ -186,10 +188,14 @@ TNo *inserir_simbolo(const char *id, int escopo,
     } else {
         novo->endereco = -1;
     }
+    if (categoria == SIMBOLO_PARAMETRO) {
+        quantidade_parametros_atual++;
+    }
     novo->escopo = escopo;
     novo->linha = linha;
     novo->categoria = categoria;
     novo->rotulo = 0;
+    novo->quantidade_parametros = 0;
 
     // Insere no início da lista encadeada.
     int indice = hashMack(novo->ID);
