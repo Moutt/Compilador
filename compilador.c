@@ -698,7 +698,11 @@ void comando(void) {
             }
 
             consome(ABRE_PAR);
-            lista_expressao();
+
+            if (lookahead.atomo != FECHA_PAR) {
+                lista_expressao();
+            }
+
             consome(FECHA_PAR);
         }
     }
