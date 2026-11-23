@@ -14,6 +14,7 @@ gcc -Wall -Wno-unused-result -g -Og compilador.c -o compilador
 #include <ctype.h>
 #include <limits.h>
 #include <stdint.h>
+#define PRIME_NUMER 211
 
 // Átomos do Portugol
 typedef enum {
@@ -37,6 +38,29 @@ typedef struct {
         char ch;          
     } atributo; 
 } TInfoAtomo;
+
+#define PRIME_NUMER 211
+
+typedef enum {
+    SIMBOLO_VARIAVEL,
+    SIMBOLO_PARAMETRO,
+    SIMBOLO_FUNCAO,
+    SIMBOLO_PROCEDIMENTO,
+    SIMBOLO_PROGRAMA
+} TCategoriaSimbolo;
+
+typedef struct _TNo {
+    char ID[16];
+    int endereco;
+    int escopo;
+    int linha;
+    TCategoriaSimbolo categoria;
+    struct _TNo *prox;
+} TNo;
+
+typedef struct {
+    TNo *entradas[PRIME_NUMER];
+} TTabelaSimbolos;
 
 // Variáveis globais.
 char *fonte;
