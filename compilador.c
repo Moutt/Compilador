@@ -898,23 +898,47 @@ void comando(void) {
         }
 
         if (lookahead.atomo == ATRIBUICAO) {
-            // Apenas variáveis e parâmetros podem receber atribuições.
+
+    // Verifica se a atribuicao representa o retorno
+    // da funcao que esta sendo compilada.
+            int atribuicao_retorno =
+            funcao_atual != NULL &&
+            simbolo == funcao_atual;
+
+    // Permite atribuicao a variaveis, parametros
+    // e ao nome da propria funcao.
             if (simbolo->categoria != SIMBOLO_VARIAVEL &&
-                simbolo->categoria != SIMBOLO_PARAMETRO) {
+                simbolo->categoria != SIMBOLO_PARAMETRO &&
+                !atribuicao_retorno) {
+
                 fprintf(stderr,
                         "Erro semantico na linha %d: '%s' nao pode receber atribuicao.\n",
                         linha, id);
                 exit(EXIT_FAILURE);
-            }
+                }
 
             consome(ATRIBUICAO);
             expressao();
 
-            if (simbolo->escopo == 0) {
-                fprintf(arquivo_mepa, "ARMZ 0,%d\n", simbolo->endereco);
+            if (atribuicao_retorno) {
+
+        // O retorno fica antes dos parametros na pilha MEPA.
+                int endereco_retorno =
+                    -(funcao_atual->quantidade_parametros + 3);
+
+                fprintf(arquivo_mepa,
+                    "ARMZ 1,%d\n", endereco_retorno);
+
+            } else if (simbolo->escopo == 0) {
+
+                fprintf(arquivo_mepa,
+                        "ARMZ 0,%d\n", simbolo->endereco);
+
             } else {
-                fprintf(arquivo_mepa, "ARMZ 1,%d\n", simbolo->endereco);
-            }
+
+                fprintf(arquivo_mepa,
+                        "ARMZ 1,%d\n", simbolo->endereco);
+        }
 
         } else if (lookahead.atomo == ABRE_PAR) {
             // Chamadas devem referenciar procedimentos.
