@@ -990,6 +990,7 @@ void fator(void) {
             if (simbolo->escopo == 0) {
                 fprintf(arquivo_mepa, "CRVL 0,%d\n", simbolo->endereco);
         }
+        }
 
     } else if (lookahead.atomo == CONSTINT) {
         int valor = lookahead.atributo.numero;
