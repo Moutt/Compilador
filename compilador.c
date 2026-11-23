@@ -1357,6 +1357,12 @@ void fator(void) {
 		    simbolo->quantidade_parametros);
 	}
 
+        // Remove os argumentos da pilha apos o retorno.
+        if (simbolo->quantidade_parametros > 0) {
+            fprintf(arquivo_mepa, "DMEM %d\n",
+                    simbolo->quantidade_parametros);
+        }
+
 
         } else {
             // Uma variável ou parâmetro pode ser usado como valor.
