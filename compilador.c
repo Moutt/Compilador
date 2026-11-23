@@ -22,7 +22,7 @@ typedef enum {
     ALGORITMO, CARACTERE, DIV, E, ENQUANTO, ENTAO, ESCREVA, FACA, FALSO, 
     FIM, FUNCAO, INICIO, INTEIRO, LEIA, LOGICO, MOD, OU, PROCEDIMENTO, 
     SE, SENAO, VAR, VERDADEIRO, NAO,
-    IDENTIFICADOR, CONSTINT, CONSTCHAR, COMENTARIO,
+    IDENTIFICADOR, CONSTINT, CONSTHEXA, CONSTCHAR, COMENTARIO,
     PONTO_VIRGULA, PONTO, DOIS_PONTOS, VIRGULA, ATRIBUICAO,
     ABRE_PAR, FECHA_PAR,
     OP_MAIOR, OP_MENOR, OP_MAIOR_IGUAL, OP_MENOR_IGUAL,
@@ -277,7 +277,7 @@ const char* nome_atomo(TAtomo a) {
         case LOGICO: return "logico"; case MOD: return "mod"; case OU: return "ou";
         case PROCEDIMENTO: return "procedimento"; case SE: return "se"; case SENAO: return "senao";
         case NAO: return "nao"; case VAR: return "var"; case VERDADEIRO: return "verdadeiro";
-        case IDENTIFICADOR: return "identificador"; case CONSTINT: return "constint";
+        case IDENTIFICADOR: return "identificador"; case CONSTINT: return "constint"; case CONSTHEXA: return "consthexa";
         case CONSTCHAR: return "constchar"; case COMENTARIO: return "comentario";
         case PONTO_VIRGULA: return "ponto_virgula"; case PONTO: return "ponto"; 
         case DOIS_PONTOS: return "dois_pontos"; case VIRGULA: return "virgula"; 
@@ -328,6 +328,9 @@ TInfoAtomo obter_atomo(void) {
         printf("# %2d:identificador: %s\n", infoAtomo.linha, infoAtomo.atributo.id);
     } else if (infoAtomo.atomo == CONSTINT) {
         printf("# %2d:constint: %d\n", infoAtomo.linha, infoAtomo.atributo.numero);
+    } else if (infoAtomo.atomo == CONSTHEXA) {
+    printf("# %2d:consthexa: %d\n",
+           infoAtomo.linha, infoAtomo.atributo.numero);
     } else if (infoAtomo.atomo == CONSTCHAR) {
         printf("# %2d:constchar: '%c'\n", infoAtomo.linha, infoAtomo.atributo.ch);
     } else {
@@ -355,6 +358,57 @@ void reconhece_comentario(TInfoAtomo *infoAtomo) {
 
 
 void reconhece_numero(TInfoAtomo *infoAtomo) {
+
+    // Reconhecimento de constantes hexadecimais: 0x1F, 0xFF etc.
+    if (buffer[0] == '0' &&
+        (buffer[1] == 'x' || buffer[1] == 'X')) {
+
+        buffer += 2;
+
+        if (!isxdigit((unsigned char)*buffer)) {
+            fprintf(stderr,
+                    "Erro lexico na linha %d: constante hexadecimal invalida.\n",
+                    infoAtomo->linha);
+            exit(EXIT_FAILURE);
+        }
+
+        int valor = 0;
+
+        while (isxdigit((unsigned char)*buffer)) {
+            int digito;
+
+            if (*buffer >= '0' && *buffer <= '9') {
+                digito = *buffer - '0';
+            } else if (*buffer >= 'a' && *buffer <= 'f') {
+                digito = *buffer - 'a' + 10;
+            } else {
+                digito = *buffer - 'A' + 10;
+            }
+
+            if (valor > (INT_MAX - digito) / 16) {
+                fprintf(stderr,
+                        "Erro lexico na linha %d: hexadecimal fora do intervalo de int.\n",
+                        infoAtomo->linha);
+                exit(EXIT_FAILURE);
+            }
+
+            valor = valor * 16 + digito;
+            buffer++;
+        }
+
+        // Impede constantes malformadas como 0x1G.
+        if (isalnum((unsigned char)*buffer) || *buffer == '_') {
+            fprintf(stderr,
+                    "Erro lexico na linha %d: constante hexadecimal invalida.\n",
+                    infoAtomo->linha);
+            exit(EXIT_FAILURE);
+        }
+
+        infoAtomo->atributo.numero = valor;
+        infoAtomo->atomo = CONSTHEXA;
+        return;
+    }
+    
     int valor = 0;
     // pega a parte inteira do numero e ja vai verificando overflow
     while (isdigit((unsigned char)*buffer)) {
@@ -869,6 +923,9 @@ void fator(void) {
 
     } else if (lookahead.atomo == CONSTINT) {
         consome(CONSTINT);
+        
+    } else if (lookahead.atomo == CONSTHEXA) {
+    consome(CONSTHEXA);
 
     } else if (lookahead.atomo == CONSTCHAR) {
         consome(CONSTCHAR);
