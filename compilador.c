@@ -764,12 +764,13 @@ void declaracao_de_procedimento(void) {
 
     // Entrada do procedimento no MEPA.
     fprintf(arquivo_mepa, "L%d:ENPR 1\n", simbolo->rotulo);
+    emitir("ENPR");
 
     // Corpo do procedimento.
     comando_composto();
 
     // Retorno ao programa chamador.
-    emitir("RTPR 1,0");
+    emitir("RTPR 0");
 
     // Consome o ponto e virgula apos o fim.
     consome(PONTO_VIRGULA);
@@ -865,7 +866,7 @@ void comando(void) {
             }
 
             consome(FECHA_PAR);
-            fprintf(arquivo_mepa, "CHPR L%d,0\n", simbolo->rotulo);
+            fprintf(arquivo_mepa, "CHPR L%d\n", simbolo->rotulo);
         }
     }
     else if (lookahead.atomo == LEIA) comando_entrada();
