@@ -839,6 +839,7 @@ void comando(void) {
     }
 }
 
+
 void comando_entrada(void) {
     consome(LEIA);
     consome(ABRE_PAR);
@@ -858,7 +859,7 @@ void comando_entrada(void) {
         // Busca no escopo atual.
         TNo *simbolo = buscar_simbolo(id, escopo_atual);
 
-        // Caso não encontre, busca no escopo global.
+        // Caso nao encontre, busca no escopo global.
         if (simbolo == NULL && escopo_atual != 0) {
             simbolo = buscar_simbolo(id, 0);
         }
@@ -870,7 +871,7 @@ void comando_entrada(void) {
             exit(EXIT_FAILURE);
         }
 
-        // O comando leia aceita apenas variáveis e parâmetros.
+        // O comando leia aceita apenas variaveis e parametros.
         if (simbolo->categoria != SIMBOLO_VARIAVEL &&
             simbolo->categoria != SIMBOLO_PARAMETRO) {
             fprintf(stderr,
@@ -878,6 +879,13 @@ void comando_entrada(void) {
                     linha, id);
             exit(EXIT_FAILURE);
         }
+
+        // Geracao de codigo MEPA.
+        emitir("LEIT");
+
+        char instrucao[64];
+        sprintf(instrucao, "ARMZ 0,%d", simbolo->endereco);
+        emitir(instrucao);
 
         if (lookahead.atomo != VIRGULA) {
             break;
