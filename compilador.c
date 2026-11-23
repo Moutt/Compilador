@@ -763,7 +763,7 @@ void declaracao_de_procedimento(void) {
     declaracao_variaveis();
 
     // Entrada do procedimento no MEPA.
-    fprintf(arquivo_mepa, "L%d:ENPR 1\n", simbolo->rotulo);
+    fprintf(arquivo_mepa, "L%d:NADA\n", simbolo->rotulo);
     emitir("ENPR");
 
     // Corpo do procedimento.
