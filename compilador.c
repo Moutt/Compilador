@@ -267,6 +267,13 @@ if (atexit(liberar_tabela) != 0) {
     return 1;
 }
 
+arquivo_mepa = fopen("saida.mepa", "w");
+
+if (arquivo_mepa == NULL) {
+    perror("Erro ao criar arquivo MEPA");
+    return 1;
+}
+
 buffer = fonte;
 lookahead = obter_atomo();
     
@@ -277,9 +284,20 @@ lookahead = obter_atomo();
     programa();
     
     consome(FIM_ARQUIVO);
-    printf("\n%d linhas analisadas, programa sintaticamente correto\n", linhas_analisadas);
+
+    if (fclose(arquivo_mepa) != 0) {
+        perror("Erro ao fechar arquivo MEPA");
+        arquivo_mepa = NULL;
+        return 1;
+    }
+
+    arquivo_mepa = NULL;
+
+    printf("\n%d linhas analisadas, programa sintaticamente correto\n",
+           linhas_analisadas);
+
     return 0;
-}
+    }
 
 
 // ------ ANALISADOR LÉXICO ------
