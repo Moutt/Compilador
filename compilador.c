@@ -729,6 +729,7 @@ void declaracao_de_funcao(void) {
     escopo_atual = escopo_anterior;
 }
 
+
 void declaracao_de_procedimento(void) {
     consome(PROCEDIMENTO);
 
@@ -747,9 +748,18 @@ void declaracao_de_procedimento(void) {
     int escopo_anterior = escopo_atual;
     escopo_atual = proximo_escopo++;
 
+    // Cabecalho e declaracoes.
     parametros_formais();
     declaracao_variaveis();
+
+    // Entrada do procedimento no nivel lexico 1.
+    fprintf(arquivo_mepa, "L%d:ENPR 1\n", simbolo->rotulo);
+
+    // Corpo do procedimento.
     comando_composto();
+
+    // Retorno ao programa chamador.
+    emitir("RTPR 1,0");
 
     escopo_atual = escopo_anterior;
 }
@@ -842,6 +852,7 @@ void comando(void) {
             }
 
             consome(FECHA_PAR);
+            fprintf(arquivo_mepa, "CHPR L%d,0\n", simbolo->rotulo);
         }
     }
     else if (lookahead.atomo == LEIA) comando_entrada();
