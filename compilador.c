@@ -880,8 +880,14 @@ void comando_entrada(void) {
 }
 
 void comando_saida(void) {
-    consome(ESCREVA); consome(ABRE_PAR);
-    lista_expressao(); consome(FECHA_PAR);
+    consome(ESCREVA);
+    consome(ABRE_PAR);
+
+    lista_expressao();
+
+    emitir("IMPR");
+
+    consome(FECHA_PAR);
 }
 
 void comando_condicional(void) {
