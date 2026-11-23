@@ -717,22 +717,79 @@ void termo(void) {
 
 
 void fator(void) {
-    if (lookahead.atomo == OP_MAIS || lookahead.atomo == OP_MENOS || lookahead.atomo == NAO) {
+    if (lookahead.atomo == OP_MAIS ||
+        lookahead.atomo == OP_MENOS ||
+        lookahead.atomo == NAO) {
+
         consome(lookahead.atomo);
         fator();
+
     } else if (lookahead.atomo == IDENTIFICADOR) {
+        char id[16];
+        int linha = lookahead.linha;
+
+        strcpy(id, lookahead.atributo.id);
         consome(IDENTIFICADOR);
-        if (lookahead.atomo == ABRE_PAR) {
-            consome(ABRE_PAR); lista_expressao(); consome(FECHA_PAR);
+
+        // Busca no escopo atual.
+        TNo *simbolo = buscar_simbolo(id, escopo_atual);
+
+        // Se necessário, busca no escopo global.
+        if (simbolo == NULL && escopo_atual != 0) {
+            simbolo = buscar_simbolo(id, 0);
         }
-    } else if (lookahead.atomo == CONSTINT) consome(CONSTINT);
-    else if (lookahead.atomo == CONSTCHAR) consome(CONSTCHAR);
-    else if (lookahead.atomo == ABRE_PAR) {
-        consome(ABRE_PAR); expressao(); consome(FECHA_PAR);
-    } else if (lookahead.atomo == VERDADEIRO) consome(VERDADEIRO);
-    else if (lookahead.atomo == FALSO) consome(FALSO);
-    else {
-        printf("# %2d:erro sintatico, esperado [identificador, constint, constchar, (, +, -, nao, verdadeiro ou falso] encontrado [%s]\n", lookahead.linha, nome_atomo(lookahead.atomo));
+
+        if (simbolo == NULL) {
+            fprintf(stderr,
+                    "Erro semantico na linha %d: identificador '%s' nao declarado.\n",
+                    linha, id);
+            exit(EXIT_FAILURE);
+        }
+
+        if (lookahead.atomo == ABRE_PAR) {
+            // Uma chamada em expressão deve ser de função.
+            if (simbolo->categoria != SIMBOLO_FUNCAO) {
+                fprintf(stderr,
+                        "Erro semantico na linha %d: '%s' nao e funcao.\n",
+                        linha, id);
+                exit(EXIT_FAILURE);
+            }
+
+            consome(ABRE_PAR);
+            lista_expressao();
+            consome(FECHA_PAR);
+
+        } else {
+            // Uma variável ou parâmetro pode ser usado como valor.
+            if (simbolo->categoria != SIMBOLO_VARIAVEL &&
+                simbolo->categoria != SIMBOLO_PARAMETRO) {
+                fprintf(stderr,
+                        "Erro semantico na linha %d: '%s' nao pode ser usado como valor.\n",
+                        linha, id);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+    } else if (lookahead.atomo == CONSTINT) {
+        consome(CONSTINT);
+
+    } else if (lookahead.atomo == CONSTCHAR) {
+        consome(CONSTCHAR);
+
+    } else if (lookahead.atomo == ABRE_PAR) {
+        consome(ABRE_PAR);
+        expressao();
+        consome(FECHA_PAR);
+
+    } else if (lookahead.atomo == VERDADEIRO) {
+        consome(VERDADEIRO);
+
+    } else if (lookahead.atomo == FALSO) {
+        consome(FALSO);
+
+    } else {
+        printf("# %2d:erro sintatico, esperado [identificador, constint, constchar, (, +, -, nao, verdadeiro ou falso] encontrado [%s]\n",
+               lookahead.linha, nome_atomo(lookahead.atomo));
         exit(1);
     }
 }
