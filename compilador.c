@@ -1313,18 +1313,53 @@ void fator(void) {
             exit(EXIT_FAILURE);
         }
 
+        
         if (lookahead.atomo == ABRE_PAR) {
-            // Uma chamada em expressão deve ser de função.
-            if (simbolo->categoria != SIMBOLO_FUNCAO) {
-                fprintf(stderr,
-                        "Erro semantico na linha %d: '%s' nao e funcao.\n",
-                        linha, id);
-                exit(EXIT_FAILURE);
-            }
 
-            consome(ABRE_PAR);
-            lista_expressao();
-            consome(FECHA_PAR);
+    // Uma chamada em expressao deve ser de funcao.
+        if (simbolo->categoria != SIMBOLO_FUNCAO) {
+            fprintf(stderr,
+                    "Erro semantico na linha %d: '%s' nao e funcao.\n",
+                        linha, id);
+            exit(EXIT_FAILURE);
+    }
+
+    // Reserva uma posicao para o retorno da funcao.
+        emitir_valor("AMEM", 1);
+
+        consome(ABRE_PAR);
+
+        int quantidade_argumentos = 0;
+
+        if (lookahead.atomo != FECHA_PAR) {
+            expressao();
+            quantidade_argumentos++;
+
+            while (lookahead.atomo == VIRGULA) {
+                consome(VIRGULA);
+                expressao();
+                quantidade_argumentos++;
+        }
+    }
+
+        consome(FECHA_PAR);
+
+    // Verifica a quantidade de argumentos.
+        if (quantidade_argumentos != simbolo->quantidade_parametros) {
+            fprintf(stderr,
+                    "Erro semantico na linha %d: funcao '%s' "
+                    "espera %d argumento(s), mas recebeu %d.\n",
+                     linha,
+                     id,
+                     simbolo->quantidade_parametros,
+                     quantidade_argumentos);
+
+            exit(EXIT_FAILURE);
+    }
+
+    // Executa a funcao.
+        fprintf(arquivo_mepa, "CHPR L%d\n", simbolo->rotulo);
+
 
         } else {
             // Uma variável ou parâmetro pode ser usado como valor.
