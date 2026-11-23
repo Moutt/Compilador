@@ -182,6 +182,8 @@ TNo *inserir_simbolo(const char *id, int escopo,
 
     novo->prox = tabela_simbolos.entradas[indice];
     tabela_simbolos.entradas[indice] = novo;
+    printf("SIMBOLO: %s | ESCOPO: %d | ENDERECO: %d\n",
+       novo->ID, novo->escopo, novo->endereco);
 
     return novo;
 }
