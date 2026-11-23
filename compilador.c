@@ -608,7 +608,15 @@ void programa(void) {
 }
 
 void bloco(void) {
-    declaracao_variaveis(); declaracao_de_rotinas(); comando_composto();
+    declaracao_variaveis();
+
+    // Reserva memoria para as variaveis globais.
+    if (proximo_endereco > 0) {
+        emitir_valor("AMEM", proximo_endereco);
+    }
+
+    declaracao_de_rotinas();
+    comando_composto();
 }
 
 int declarando_parametros = 0;
