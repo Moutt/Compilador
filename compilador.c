@@ -1195,7 +1195,10 @@ void fator(void) {
             // Formato provisório para variáveis globais.
             if (simbolo->escopo == 0) {
                 fprintf(arquivo_mepa, "CRVL 0,%d\n", simbolo->endereco);
-        }
+            } else {
+                fprintf(arquivo_mepa, "CRVL 1,%d\n", simbolo->endereco);
+            }    
+        
         }
 
     } else if (lookahead.atomo == CONSTINT) {
