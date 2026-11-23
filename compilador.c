@@ -72,6 +72,7 @@ int escopo_atual = 0;
 int proximo_escopo = 1;
 // Proximo endereco disponivel para variaveis e parametros.
 int proximo_endereco = 0;
+int proximo_endereco_local = 0; // Endereços locais
 int proximo_rotulo = 1;
 
 FILE *arquivo_mepa = NULL;
