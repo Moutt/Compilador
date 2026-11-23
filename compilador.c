@@ -68,6 +68,7 @@ int linhas_analisadas;
 TInfoAtomo lookahead; 
 TTabelaSimbolos tabela_simbolos;
 int escopo_atual = 0;
+int proximo_escopo = 1;
 
 // Funções Léxico.
 TInfoAtomo obter_atomo(void);
@@ -512,6 +513,8 @@ void bloco(void) {
     declaracao_variaveis(); declaracao_de_rotinas(); comando_composto();
 }
 
+int declarando_parametros = 0;
+
 void declaracao_variaveis(void) {
     if (lookahead.atomo == VAR) {
         consome(VAR);
@@ -530,7 +533,12 @@ void lista_variaveis(void) {
     strcpy(id, lookahead.atributo.id);
     consome(IDENTIFICADOR);
 
-    inserir_simbolo(id, escopo_atual, SIMBOLO_VARIAVEL, linha);
+    inserir_simbolo(
+    id,
+    escopo_atual,
+    declarando_parametros ? SIMBOLO_PARAMETRO : SIMBOLO_VARIAVEL,
+    linha
+);
 
     // Demais identificadores separados por vírgula.
     while (lookahead.atomo == VIRGULA) {
@@ -541,7 +549,12 @@ void lista_variaveis(void) {
 
         consome(IDENTIFICADOR);
 
-        inserir_simbolo(id, escopo_atual, SIMBOLO_VARIAVEL, linha);
+        inserir_simbolo(
+    id,
+    escopo_atual,
+    declarando_parametros ? SIMBOLO_PARAMETRO : SIMBOLO_VARIAVEL,
+    linha
+);
     }
 
     consome(DOIS_PONTOS);
@@ -566,13 +579,46 @@ void declaracao_de_rotinas(void) {
 }
 
 void declaracao_de_funcao(void) {
-    consome(FUNCAO); tipo(); consome(IDENTIFICADOR);
-    parametros_formais(); declaracao_variaveis(); comando_composto();
+    consome(FUNCAO);
+    tipo();
+
+    char id[16];
+    int linha = lookahead.linha;
+
+    strcpy(id, lookahead.atributo.id);
+    consome(IDENTIFICADOR);
+
+    inserir_simbolo(id, 0, SIMBOLO_FUNCAO, linha);
+
+    int escopo_anterior = escopo_atual;
+    escopo_atual = proximo_escopo++;
+
+    parametros_formais();
+    declaracao_variaveis();
+    comando_composto();
+
+    escopo_atual = escopo_anterior;
 }
 
 void declaracao_de_procedimento(void) {
-    consome(PROCEDIMENTO); consome(IDENTIFICADOR);
-    parametros_formais(); declaracao_variaveis(); comando_composto();
+    consome(PROCEDIMENTO);
+
+    char id[16];
+    int linha = lookahead.linha;
+
+    strcpy(id, lookahead.atributo.id);
+    consome(IDENTIFICADOR);
+
+    inserir_simbolo(id, 0, SIMBOLO_PROCEDIMENTO, linha);
+
+    int escopo_anterior = escopo_atual;
+    escopo_atual = proximo_escopo++;
+
+    parametros_formais();
+    declaracao_variaveis();
+    comando_composto();
+
+    escopo_atual = escopo_anterior;
 }
 
 void parametros_formais(void) {
@@ -588,8 +634,13 @@ void parametros_formais(void) {
 }
 
 void parametro_formal(void) {
-    if (lookahead.atomo == VAR) consome(VAR);
+    if (lookahead.atomo == VAR) {
+        consome(VAR);
+    }
+
+    declarando_parametros = 1;
     lista_variaveis();
+    declarando_parametros = 0;
 }
 
 void comando_composto(void) {
