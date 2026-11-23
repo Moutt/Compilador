@@ -52,6 +52,7 @@ typedef struct _TNo {
     int endereco;
     int escopo;
     int linha;
+    int rotulo;
     TCategoriaSimbolo categoria;
     struct _TNo *prox;
 } TNo;
@@ -620,15 +621,26 @@ void programa(void) {
 void bloco(void) {
     declaracao_variaveis();
 
-    // Reserva memoria para as variaveis globais.
     if (proximo_endereco > 0) {
         emitir_valor("AMEM", proximo_endereco);
     }
 
+    int rotulo_principal = proximo_rotulo++;
+
+    char instrucao[64];
+
+    // Salta as declaracoes de procedimentos e funcoes.
+    sprintf(instrucao, "DSVS L%d", rotulo_principal);
+    emitir(instrucao);
+
     declaracao_de_rotinas();
+
+    // Inicio do programa principal.
+    sprintf(instrucao, "L%d:NADA", rotulo_principal);
+    emitir(instrucao);
+
     comando_composto();
 }
-
 int declarando_parametros = 0;
 
 void declaracao_variaveis(void) {
