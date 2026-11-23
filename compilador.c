@@ -854,15 +854,40 @@ void expressao(void) {
 
 void expressao_simples(void) {
     termo();
-    while (lookahead.atomo == OP_MAIS || lookahead.atomo == OP_MENOS || lookahead.atomo == MOD || lookahead.atomo == OU) {
-        consome(lookahead.atomo); termo();
+
+    while (lookahead.atomo == OP_MAIS ||
+           lookahead.atomo == OP_MENOS ||
+           lookahead.atomo == MOD ||
+           lookahead.atomo == OU) {
+
+        TAtomo operador = lookahead.atomo;
+
+        consome(operador);
+        termo();
+
+        if (operador == OP_MAIS) {
+            emitir("SOMA");
+        } else if (operador == OP_MENOS) {
+            emitir("SUBT");
+        }
     }
 }
 
 void termo(void) {
     fator();
-    while (lookahead.atomo == OP_MULT || lookahead.atomo == DIV || lookahead.atomo == E) {
-        consome(lookahead.atomo); fator();
+
+    while (lookahead.atomo == OP_MULT ||
+           lookahead.atomo == DIV ||
+           lookahead.atomo == E) {
+
+        TAtomo operador = lookahead.atomo;
+
+        consome(operador);
+        fator();
+
+        if (operador == OP_MULT) {
+            emitir("MULT");
+        }
     }
 }
 
