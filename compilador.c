@@ -176,21 +176,24 @@ TNo *inserir_simbolo(const char *id, int escopo,
 
     // Preenche os dados do identificador.
     strcpy(novo->ID, id);
-    if (categoria == SIMBOLO_VARIAVEL ||
-        categoria == SIMBOLO_PARAMETRO) {
+    if (categoria == SIMBOLO_PARAMETRO) {
+    // Guarda a posicao do parametro.
+        novo->endereco = quantidade_parametros_atual;
+        quantidade_parametros_atual++;
 
+    } else if (categoria == SIMBOLO_VARIAVEL) {
+    // Variavel global ou local.
         if (escopo == 0) {
-        novo->endereco = proximo_endereco++;
+            novo->endereco = proximo_endereco++;
         } else {
-        novo->endereco = proximo_endereco_local++;
+            novo->endereco = proximo_endereco_local++;
         }
 
     } else {
+    // Procedimentos e funcoes nao possuem endereco de variavel.
         novo->endereco = -1;
     }
-    if (categoria == SIMBOLO_PARAMETRO) {
-        quantidade_parametros_atual++;
-    }
+
     novo->escopo = escopo;
     novo->linha = linha;
     novo->categoria = categoria;
