@@ -917,14 +917,38 @@ void comando(void) {
                 exit(EXIT_FAILURE);
             }
 
-            consome(ABRE_PAR);
+consome(ABRE_PAR);
 
-            if (lookahead.atomo != FECHA_PAR) {
-                lista_expressao();
-            }
+int quantidade_argumentos = 0;
 
-            consome(FECHA_PAR);
-            fprintf(arquivo_mepa, "CHPR L%d\n", simbolo->rotulo);
+if (lookahead.atomo != FECHA_PAR) {
+    expressao();
+    quantidade_argumentos++;
+
+    while (lookahead.atomo == VIRGULA) {
+        consome(VIRGULA);
+        expressao();
+        quantidade_argumentos++;
+    }
+}
+
+consome(FECHA_PAR);
+
+// Verifica se a quantidade de argumentos esta correta.
+if (quantidade_argumentos != simbolo->quantidade_parametros) {
+    fprintf(stderr,
+            "Erro semantico na linha %d: procedimento '%s' "
+            "espera %d argumento(s), mas recebeu %d.\n",
+            linha,
+            id,
+            simbolo->quantidade_parametros,
+            quantidade_argumentos);
+
+    exit(EXIT_FAILURE);
+}
+
+// Gera a chamada do procedimento.
+fprintf(arquivo_mepa, "CHPR L%d\n", simbolo->rotulo);
         }
     }
     else if (lookahead.atomo == LEIA) comando_entrada();
