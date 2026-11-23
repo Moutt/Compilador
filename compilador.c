@@ -182,6 +182,7 @@ TNo *inserir_simbolo(const char *id, int escopo,
     novo->escopo = escopo;
     novo->linha = linha;
     novo->categoria = categoria;
+    novo->rotulo = 0;
 
     // Insere no início da lista encadeada.
     int indice = hashMack(novo->ID);
@@ -737,7 +738,11 @@ void declaracao_de_procedimento(void) {
     strcpy(id, lookahead.atributo.id);
     consome(IDENTIFICADOR);
 
-    inserir_simbolo(id, 0, SIMBOLO_PROCEDIMENTO, linha);
+    TNo *simbolo = inserir_simbolo(
+        id, 0, SIMBOLO_PROCEDIMENTO, linha
+    );
+
+    simbolo->rotulo = proximo_rotulo++;
 
     int escopo_anterior = escopo_atual;
     escopo_atual = proximo_escopo++;
