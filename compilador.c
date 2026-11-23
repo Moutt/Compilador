@@ -723,6 +723,10 @@ void declaracao_de_funcao(void) {
     escopo_atual = proximo_escopo++;
 
     parametros_formais();
+
+// Consome o ponto e virgula apos o cabecalho.
+    consome(PONTO_VIRGULA);
+
     declaracao_variaveis();
     comando_composto();
 
@@ -760,6 +764,9 @@ void declaracao_de_procedimento(void) {
 
     // Retorno ao programa chamador.
     emitir("RTPR 1,0");
+
+    // Consome o separador apos a declaracao do procedimento.
+    consome(PONTO_VIRGULA);
 
     escopo_atual = escopo_anterior;
 }
