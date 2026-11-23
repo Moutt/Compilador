@@ -664,10 +664,52 @@ void comando(void) {
 }
 
 void comando_entrada(void) {
-    consome(LEIA); consome(ABRE_PAR); consome(IDENTIFICADOR);
-    while (lookahead.atomo == VIRGULA) {
-        consome(VIRGULA); consome(IDENTIFICADOR);
+    consome(LEIA);
+    consome(ABRE_PAR);
+
+    while (1) {
+        char id[16];
+        int linha = lookahead.linha;
+
+        // Verifica se existe um identificador.
+        if (lookahead.atomo != IDENTIFICADOR) {
+            consome(IDENTIFICADOR);
+        }
+
+        strcpy(id, lookahead.atributo.id);
+        consome(IDENTIFICADOR);
+
+        // Busca no escopo atual.
+        TNo *simbolo = buscar_simbolo(id, escopo_atual);
+
+        // Caso não encontre, busca no escopo global.
+        if (simbolo == NULL && escopo_atual != 0) {
+            simbolo = buscar_simbolo(id, 0);
+        }
+
+        if (simbolo == NULL) {
+            fprintf(stderr,
+                    "Erro semantico na linha %d: identificador '%s' nao declarado.\n",
+                    linha, id);
+            exit(EXIT_FAILURE);
+        }
+
+        // O comando leia aceita apenas variáveis e parâmetros.
+        if (simbolo->categoria != SIMBOLO_VARIAVEL &&
+            simbolo->categoria != SIMBOLO_PARAMETRO) {
+            fprintf(stderr,
+                    "Erro semantico na linha %d: '%s' nao pode receber leitura.\n",
+                    linha, id);
+            exit(EXIT_FAILURE);
+        }
+
+        if (lookahead.atomo != VIRGULA) {
+            break;
+        }
+
+        consome(VIRGULA);
     }
+
     consome(FECHA_PAR);
 }
 
