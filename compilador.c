@@ -72,15 +72,15 @@ int proximo_escopo = 1;
 // Proximo endereco disponivel para variaveis e parametros.
 int proximo_endereco = 0;
 
+FILE *arquivo_mepa = NULL;
+
 // Emite uma instrucao MEPA
 void emitir(const char *instrucao) {
-    printf("%s\n", instrucao);
+    fprintf(arquivo_mepa, "%s\n", instrucao);
 }
-
 void emitir_valor(const char *instrucao, int valor) {
-    printf("%s %d\n", instrucao, valor);
+    fprintf(arquivo_mepa, "%s %d\n", instrucao, valor);
 }
-
 // Funções Léxico.
 TInfoAtomo obter_atomo(void);
 void reconhece_numero(TInfoAtomo *infoAtomo);
@@ -762,7 +762,7 @@ void comando(void) {
 
             // Armazena o resultado na variável global.
             if (simbolo->escopo == 0) {
-                printf("ARMZ 0,%d\n", simbolo->endereco);
+                fprintf(arquivo_mepa, "ARMZ 0,%d\n", simbolo->endereco);
             }
 
         } else if (lookahead.atomo == ABRE_PAR) {
@@ -970,7 +970,7 @@ void fator(void) {
             // Carrega o valor da variavel na pilha MEPA.
             // Formato provisório para variáveis globais.
             if (simbolo->escopo == 0) {
-                printf("CRVL 0,%d\n", simbolo->endereco);}
+                fprintf(arquivo_mepa, "CRVL 0,%d\n", simbolo->endereco);
         }
 
     } else if (lookahead.atomo == CONSTINT) {
