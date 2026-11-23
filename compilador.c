@@ -917,12 +917,49 @@ void lista_expressao(void) {
     }
 }
 
+
 void expressao(void) {
     expressao_simples();
-    if (lookahead.atomo >= OP_MAIOR && lookahead.atomo <= OP_DIFERENTE) {
-        consome(lookahead.atomo); expressao_simples();
+
+    if (lookahead.atomo >= OP_MAIOR &&
+        lookahead.atomo <= OP_DIFERENTE) {
+
+        TAtomo operador = lookahead.atomo;
+
+        consome(operador);
+        expressao_simples();
+
+        switch (operador) {
+            case OP_IGUAL:
+                emitir("CMIG");
+                break;
+
+            case OP_DIFERENTE:
+                emitir("CMDG");
+                break;
+
+            case OP_MENOR:
+                emitir("CMME");
+                break;
+
+            case OP_MAIOR:
+                emitir("CMMA");
+                break;
+
+            case OP_MENOR_IGUAL:
+                emitir("CMEG");
+                break;
+
+            case OP_MAIOR_IGUAL:
+                emitir("CMAG");
+                break;
+
+            default:
+                break;
+        }
     }
 }
+
 
 void expressao_simples(void) {
     termo();
