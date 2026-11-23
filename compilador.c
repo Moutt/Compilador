@@ -734,6 +734,7 @@ void declaracao_de_funcao(void) {
 }
 
 
+
 void declaracao_de_procedimento(void) {
     consome(PROCEDIMENTO);
 
@@ -752,11 +753,16 @@ void declaracao_de_procedimento(void) {
     int escopo_anterior = escopo_atual;
     escopo_atual = proximo_escopo++;
 
-    // Cabecalho e declaracoes.
+    // Reconhece os parametros.
     parametros_formais();
+
+    // Consome o ponto e virgula apos o cabecalho.
+    consome(PONTO_VIRGULA);
+
+    // Reconhece as variaveis locais.
     declaracao_variaveis();
 
-    // Entrada do procedimento no nivel lexico 1.
+    // Entrada do procedimento no MEPA.
     fprintf(arquivo_mepa, "L%d:ENPR 1\n", simbolo->rotulo);
 
     // Corpo do procedimento.
@@ -765,7 +771,7 @@ void declaracao_de_procedimento(void) {
     // Retorno ao programa chamador.
     emitir("RTPR 1,0");
 
-    // Consome o separador apos a declaracao do procedimento.
+    // Consome o ponto e virgula apos o fim.
     consome(PONTO_VIRGULA);
 
     escopo_atual = escopo_anterior;
