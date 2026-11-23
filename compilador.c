@@ -70,6 +70,11 @@ TTabelaSimbolos tabela_simbolos;
 int escopo_atual = 0;
 int proximo_escopo = 1;
 
+// Emite uma instrucao MEPA
+void emitir(const char *instrucao) {
+    printf("%s\n", instrucao);
+}
+
 // Funções Léxico.
 TInfoAtomo obter_atomo(void);
 void reconhece_numero(TInfoAtomo *infoAtomo);
