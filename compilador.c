@@ -523,11 +523,29 @@ void declaracao_variaveis(void) {
 }
 
 void lista_variaveis(void) {
+    // Primeiro identificador da declaração.
+    char id[16];
+    int linha = lookahead.linha;
+
+    strcpy(id, lookahead.atributo.id);
     consome(IDENTIFICADOR);
+
+    inserir_simbolo(id, escopo_atual, SIMBOLO_VARIAVEL, linha);
+
+    // Demais identificadores separados por vírgula.
     while (lookahead.atomo == VIRGULA) {
-        consome(VIRGULA); consome(IDENTIFICADOR);
+        consome(VIRGULA);
+
+        linha = lookahead.linha;
+        strcpy(id, lookahead.atributo.id);
+
+        consome(IDENTIFICADOR);
+
+        inserir_simbolo(id, escopo_atual, SIMBOLO_VARIAVEL, linha);
     }
-    consome(DOIS_PONTOS); tipo();
+
+    consome(DOIS_PONTOS);
+    tipo();
 }
 
 void tipo(void) {
