@@ -77,6 +77,10 @@ void emitir(const char *instrucao) {
     printf("%s\n", instrucao);
 }
 
+void emitir_valor(const char *instrucao, int valor) {
+    printf("%s %d\n", instrucao, valor);
+}
+
 // Funções Léxico.
 TInfoAtomo obter_atomo(void);
 void reconhece_numero(TInfoAtomo *infoAtomo);
@@ -756,6 +760,11 @@ void comando(void) {
             consome(ATRIBUICAO);
             expressao();
 
+            // Armazena o resultado na variável global.
+            if (simbolo->escopo == 0) {
+                printf("ARMZ 0,%d\n", simbolo->endereco);
+            }
+
         } else if (lookahead.atomo == ABRE_PAR) {
             // Chamadas devem referenciar procedimentos.
             if (simbolo->categoria != SIMBOLO_PROCEDIMENTO) {
@@ -958,13 +967,21 @@ void fator(void) {
                         linha, id);
                 exit(EXIT_FAILURE);
             }
+            // Carrega o valor da variavel na pilha MEPA.
+            // Formato provisório para variáveis globais.
+            if (simbolo->escopo == 0) {
+                printf("CRVL 0,%d\n", simbolo->endereco);}
         }
 
     } else if (lookahead.atomo == CONSTINT) {
+        int valor = lookahead.atributo.numero;
         consome(CONSTINT);
+        emitir_valor("CRCT", valor);
         
     } else if (lookahead.atomo == CONSTHEXA) {
-    consome(CONSTHEXA);
+        int valor = lookahead.atributo.numero;
+        consome(CONSTHEXA);
+        emitir_valor("CRCT", valor);
 
     } else if (lookahead.atomo == CONSTCHAR) {
         consome(CONSTCHAR);
