@@ -772,9 +772,34 @@ void declaracao_de_procedimento(void) {
     // Reinicia os enderecos locais deste procedimento.
     proximo_endereco_local = 0;
 
+
+    // Reinicia o contador de parametros deste procedimento.
+    quantidade_parametros_atual = 0;
+
     // Reconhece os parametros.
     parametros_formais();
 
+    // Guarda quantos parametros o procedimento possui.
+    simbolo->quantidade_parametros = quantidade_parametros_atual;
+
+    // Converte as posicoes provisórias em enderecos MEPA.
+    for (int i = 0; i < 211; i++) {
+        TNo *atual = tabela_simbolos.entradas[i];
+
+        while (atual != NULL) {
+            if (atual->escopo == escopo_atual &&
+                atual->categoria == SIMBOLO_PARAMETRO) {
+
+                atual->endereco =
+                    atual->endereco -
+                    simbolo->quantidade_parametros - 2;
+            }
+
+            atual = atual->prox;
+        }
+    }
+
+    // Consome o ponto e virgula apos o cabecalho.
     consome(PONTO_VIRGULA);
 
     // Reconhece as variaveis locais.
