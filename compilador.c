@@ -39,8 +39,6 @@ typedef struct {
     } atributo; 
 } TInfoAtomo;
 
-#define PRIME_NUMER 211
-
 typedef enum {
     SIMBOLO_VARIAVEL,
     SIMBOLO_PARAMETRO,
@@ -68,6 +66,8 @@ char *buffer;
 int nLinha;         
 int linhas_analisadas;
 TInfoAtomo lookahead; 
+TTabelaSimbolos tabela_simbolos;
+int escopo_atual = 0;
 
 // Funções Léxico.
 TInfoAtomo obter_atomo(void);
