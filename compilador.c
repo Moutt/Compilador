@@ -595,8 +595,16 @@ void consome(TAtomo esperado) {
 }
 
 void programa(void) {
-    consome(ALGORITMO); consome(IDENTIFICADOR); consome(PONTO_VIRGULA);
-    bloco(); consome(PONTO);
+    consome(ALGORITMO);
+    consome(IDENTIFICADOR);
+    consome(PONTO_VIRGULA);
+
+    emitir("INPP");
+
+    bloco();
+
+    consome(PONTO);
+    emitir("PARA");
 }
 
 void bloco(void) {
