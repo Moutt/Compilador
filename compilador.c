@@ -176,7 +176,13 @@ TNo *inserir_simbolo(const char *id, int escopo,
     strcpy(novo->ID, id);
     if (categoria == SIMBOLO_VARIAVEL ||
         categoria == SIMBOLO_PARAMETRO) {
+
+        if (escopo == 0) {
         novo->endereco = proximo_endereco++;
+        } else {
+        novo->endereco = proximo_endereco_local++;
+        }
+
     } else {
         novo->endereco = -1;
     }
